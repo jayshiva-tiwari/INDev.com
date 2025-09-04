@@ -1,7 +1,9 @@
 require("dotenv").config();
 
+const morgan = require("morgan");
 const express = require("express");
 const mongoose = require("mongoose");
+const path = require("path");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const authRouter = require("./routes/auth/auth-routes");
@@ -17,6 +19,7 @@ const shopReviewRouter = require("./routes/shop/review-routes");
 
 const commonFeatureRouter = require("./routes/common/feature-routes");
 
+
 //create a database connection -> u can also
 //create a separate file for this and then import/use that file here
 
@@ -31,7 +34,6 @@ const PORT = process.env.PORT || 5000;
 app.use(
   cors({
     origin: process.env.CLIENT_BASE_URL,
-    methods: ["GET", "POST", "DELETE", "PUT"],
     allowedHeaders: [
       "Content-Type",
       "Authorization",
@@ -45,6 +47,9 @@ app.use(
 
 app.use(cookieParser());
 app.use(express.json());
+app.use(morgan("dev"));
+
+
 app.use("/api/auth", authRouter);
 app.use("/api/admin/products", adminProductsRouter);
 app.use("/api/admin/orders", adminOrderRouter);
@@ -57,5 +62,12 @@ app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 
 app.use("/api/common/feature", commonFeatureRouter);
+
+app.use(express.static(path.join(__dirname, "../client/dist"), { maxAge: "30d", immutable: true } ));
+
+app.all("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+
+});
 
 app.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));
